@@ -12,39 +12,39 @@ import java.util.Arrays;
 public class MovieFragment extends Fragment {
 
     private MovieArrayAdapter movieArrayAdapter;
+    String movieImageURL = buildImageURL();
 
-    MovieInfo[] movieInfos = {
-            new MovieInfo("Movie 1", R.drawable.stellar1),
-            new MovieInfo("Movie 2", R.drawable.stellar2),
-            new MovieInfo("Movie 3", R.drawable.stellar3),
-            new MovieInfo("Movie 4", R.drawable.stellar4),
-            new MovieInfo("Movie 5", R.drawable.stellar5),
-            new MovieInfo("Movie 6", R.drawable.stellar6),
-            new MovieInfo("Movie 7", R.drawable.stellar7),
-            new MovieInfo("Movie 8", R.drawable.stellar8),
-            new MovieInfo("Movie 9", R.drawable.stellar9),
-            new MovieInfo("Movie 10", R.drawable.stellar10),
-            new MovieInfo("Movie 11", R.drawable.stellar11),
-            new MovieInfo("Movie 12", R.drawable.stellar12),
-            new MovieInfo("Movie 13", R.drawable.stellar13),
-            new MovieInfo("Movie 14", R.drawable.stellar14),
-            new MovieInfo("Movie 15", R.drawable.stellar15),
-            new MovieInfo("Movie 16", R.drawable.stellar16),
-            new MovieInfo("Movie 17", R.drawable.stellar17),
-            new MovieInfo("Movie 18", R.drawable.stellar18),
-            new MovieInfo("Movie 19", R.drawable.stellar19),
-            new MovieInfo("Movie 20", R.drawable.stellar20),
+
+    //The array movieData contains dummy data for testing. This will be replaced with JSON data
+    //obtained from the internet
+    MovieData[] movieData = {
+            new MovieData("Movie 1", movieImageURL),
+            new MovieData("Movie 2", movieImageURL),
+            new MovieData("Movie 3", movieImageURL),
+            new MovieData("Movie 4", movieImageURL),
+            new MovieData("Movie 5", movieImageURL),
+            new MovieData("Movie 6", movieImageURL),
+
     };
 
     public MovieFragment() {
+    }
+
+    private String buildImageURL() {
+        String baseURL = "https://image.tmdb.org/t/p";
+        String imageSize = "/w500";
+        String imageURL = "/jjPJ4s3DWZZvI4vw8Xfi4Vqa1Q8.jpg";
+        return (baseURL + imageSize + imageURL);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
-        movieArrayAdapter = new MovieArrayAdapter(getActivity(), Arrays.asList(movieInfos));
+        movieArrayAdapter = new MovieArrayAdapter(getActivity(), Arrays.asList(movieData));
 
+        //inflate the GridView and create a reference to the movieArrayAdapter, which contains
+        //each movie image in an ImageView
         GridView gridView = rootView.findViewById(R.id.poster_grid);
         gridView.setAdapter(movieArrayAdapter);
 

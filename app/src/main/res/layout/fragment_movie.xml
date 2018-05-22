@@ -3,7 +3,6 @@
     android:id="@+id/poster_grid"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:columnWidth="180dp"
     android:numColumns="auto_fit">
 
 </GridView>

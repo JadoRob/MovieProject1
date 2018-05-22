@@ -2,13 +2,13 @@ package org.udacity.android.movieproject1;
 
 /* This adapter obtains the movie data and binds it to the grid */
 
-public class MovieInfo {
+public class MovieData {
 
      String movieTitle;
-     int moviePoster;
+     String movieImage;
 
-    public MovieInfo(String movieTitle, int moviePoster) {
+    public MovieData(String movieTitle, String movieImage) {
         this.movieTitle = movieTitle;
-        this.moviePoster = moviePoster;
+        this.movieImage = movieImage;
     }
 }
