@@ -15,7 +15,7 @@ public class MovieFragment extends Fragment {
     String movieImageURL = buildImageURL();
 
 
-    //The array movieData contains dummy data for testing. This will be replaced with JSON data
+    //The array movieData contains dummy data to test the fragment and gridview. This will be replaced with JSON data
     //obtained from the internet
     MovieData[] movieData = {
             new MovieData("Movie 1", movieImageURL),
@@ -30,10 +30,11 @@ public class MovieFragment extends Fragment {
     public MovieFragment() {
     }
 
+    //This will be replaced with the appropriate URI builder in NetworkUtil to create the URL
     private String buildImageURL() {
         String baseURL = "https://image.tmdb.org/t/p";
         String imageSize = "/w500";
-        String imageURL = "/jjPJ4s3DWZZvI4vw8Xfi4Vqa1Q8.jpg";
+        String imageURL = "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg";
         return (baseURL + imageSize + imageURL);
     }
 
