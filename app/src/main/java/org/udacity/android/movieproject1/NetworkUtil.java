@@ -18,8 +18,7 @@ public class NetworkUtil {
     private static final String TOP_RATED_BASE_URL = "https://api.themoviedb.org/3/movie/top_rated?";
     private static final String LANGUAGE = "language";
     private static final String PAGE = "page";
-    //created a string resource file for the key, and added it gitignore
-    private static final String API_KEY = Resources.getSystem().getString(R.string.key);
+    private static final String API_KEY = "api_key";
 
 
     static String getMovieInfo(String queryString) {
@@ -43,22 +42,27 @@ public class NetworkUtil {
 
         try {
             Uri buildURI = Uri.parse(movieBaseURL).buildUpon()
-                    .appendQueryParameter(API_KEY, "api_key")
+                    .appendQueryParameter(API_KEY, "API-KEY-GOES-HERE!")
                     .appendQueryParameter(LANGUAGE, "en-US")
                     .appendQueryParameter(PAGE, "1").build();
-            Log.v(TAG, buildURI.toString());
             URL requestURL = new URL(buildURI.toString());
+            Log.i(TAG, requestURL.toString());
             urlConnection = (HttpURLConnection) requestURL.openConnection();
             urlConnection.setRequestMethod("GET");
+            //Throws an exception if this network operation is performed on the main thread!
             urlConnection.connect();
+
 
             InputStream inputStream = urlConnection.getInputStream();
             StringBuffer buffer = new StringBuffer();
+
             if (inputStream == null) {
                 return null;
             }
+
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
+
             while ((line = reader.readLine()) != null) {
                 buffer.append(line + "\n");
             }
@@ -69,6 +73,7 @@ public class NetworkUtil {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+
             return null;
 
         } finally {
@@ -82,7 +87,6 @@ public class NetworkUtil {
                     e.printStackTrace();
                 }
             }
-            Log.d(TAG, movieJSONString);
             return movieJSONString;
         }
 
