@@ -42,7 +42,7 @@ public class NetworkUtil {
 
         try {
             Uri buildURI = Uri.parse(movieBaseURL).buildUpon()
-                    .appendQueryParameter(API_KEY, "API-KEY-GOES-HERE!")
+                    .appendQueryParameter(API_KEY, "API_KEY_TEMPORARILY_REMOVED_FOR_GITHUB_PUSH")
                     .appendQueryParameter(LANGUAGE, "en-US")
                     .appendQueryParameter(PAGE, "1").build();
             URL requestURL = new URL(buildURI.toString());
