@@ -34,7 +34,7 @@ public class NetworkUtil {
         if (queryString.equals("popular")) {
             movieBaseURL = POPULAR_MOVIE_BASE_URL;
 
-        } else if (queryString.equals("top rated")) {
+        } else if (queryString.equals("rating")) {
             movieBaseURL = TOP_RATED_BASE_URL;
         }
 
@@ -42,7 +42,7 @@ public class NetworkUtil {
 
         try {
             Uri buildURI = Uri.parse(movieBaseURL).buildUpon()
-                    .appendQueryParameter(API_KEY, "API_KEY_TEMPORARILY_REMOVED_FOR_GITHUB_PUSH")
+                    .appendQueryParameter(API_KEY, "REMOVED-KEY-FOR-GITHUB-PUSH")
                     .appendQueryParameter(LANGUAGE, "en-US")
                     .appendQueryParameter(PAGE, "1").build();
             URL requestURL = new URL(buildURI.toString());
