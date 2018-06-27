@@ -31,13 +31,14 @@ public class MovieFragment extends Fragment {
     String releaseDate;
 
 
-    class getMoviesTask extends AsyncTask<String, Void, String> {
+    class GetMoviesTask extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... strings) {
             String jsonString;
+            String apiKey = getString(R.string.tmdb_api_key);
             String sortOrder = MoviePreferences.getMovieSortOrder(getActivity());
-            jsonString = NetworkUtil.getMovieInfo(sortOrder);
+            jsonString = NetworkUtil.getMovieInfo(sortOrder, apiKey);
             Log.i(TAG, jsonString); //Confirms the request for data was successful.
             return jsonString;
         }
@@ -78,7 +79,7 @@ public class MovieFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        new getMoviesTask().execute();
+        new GetMoviesTask().execute();
         movieArrayAdapter = new MovieArrayAdapter(getActivity(), movieData);
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
         GridView gridView = rootView.findViewById(R.id.poster_grid);
@@ -121,7 +122,8 @@ public class MovieFragment extends Fragment {
     }
 
     private void updateMovies() {
-        new getMoviesTask().execute();
+        movieData.clear();
+        new GetMoviesTask().execute();
     }
 }
 

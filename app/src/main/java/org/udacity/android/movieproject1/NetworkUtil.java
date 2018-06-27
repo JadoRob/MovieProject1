@@ -1,6 +1,4 @@
 package org.udacity.android.movieproject1;
-
-import android.content.res.Resources;
 import android.net.Uri;
 import android.util.Log;
 
@@ -21,7 +19,7 @@ public class NetworkUtil {
     private static final String API_KEY = "api_key";
 
 
-    static String getMovieInfo(String queryString) {
+    static String getMovieInfo(String queryString, String apiKey) {
 
         //the parameter queryString contains "popular" to determine the http query
 
@@ -29,6 +27,7 @@ public class NetworkUtil {
         BufferedReader reader = null;
         String movieBaseURL = null;
         String movieJSONString = null;
+
 
         //initialize base http with "popular" query
         if (queryString.equals("popular")) {
@@ -42,7 +41,7 @@ public class NetworkUtil {
 
         try {
             Uri buildURI = Uri.parse(movieBaseURL).buildUpon()
-                    .appendQueryParameter(API_KEY, "REMOVED-KEY-FOR-GITHUB-PUSH")
+                    .appendQueryParameter(API_KEY, apiKey)
                     .appendQueryParameter(LANGUAGE, "en-US")
                     .appendQueryParameter(PAGE, "1").build();
             URL requestURL = new URL(buildURI.toString());
