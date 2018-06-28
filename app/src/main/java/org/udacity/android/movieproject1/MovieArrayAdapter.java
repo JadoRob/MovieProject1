@@ -29,7 +29,7 @@ public class MovieArrayAdapter extends ArrayAdapter<MovieData> {
         }
 
         ImageView posterView = convertView.findViewById(R.id.movie_poster);
-        Picasso.get().load(movieData.movieImage).into(posterView);
+        Picasso.get().load(movieData.movieImage).placeholder(R.drawable.loading).into(posterView);
 
         return convertView;
     }

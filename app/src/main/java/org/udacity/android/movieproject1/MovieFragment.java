@@ -1,6 +1,9 @@
 package org.udacity.android.movieproject1;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -31,44 +34,53 @@ public class MovieFragment extends Fragment {
     String releaseDate;
 
 
+
     class GetMoviesTask extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... strings) {
+
             String jsonString;
             String apiKey = getString(R.string.tmdb_api_key);
             String sortOrder = MoviePreferences.getMovieSortOrder(getActivity());
             jsonString = NetworkUtil.getMovieInfo(sortOrder, apiKey);
-            Log.i(TAG, jsonString); //Confirms the request for data was successful.
+            if (internetConnection()) {
+                Log.i(TAG, jsonString); //Confirms connection and request for data was successful.
+            } else {
+                Log.i(TAG, "Unable to collect movie data");
+            }
             return jsonString;
         }
 
         @Override
         protected void onPostExecute(String jsonString) {
             super.onPostExecute(jsonString);
-            try {
-                JSONObject jsonObject = new JSONObject(jsonString);
-                JSONArray moviesArray = jsonObject.getJSONArray("results");
 
-                for (int i = 0; i < moviesArray.length(); i++) {
-                    JSONObject movie = moviesArray.getJSONObject(i);
+            if (jsonString != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(jsonString);
+                    JSONArray moviesArray = jsonObject.getJSONArray("results");
 
-                    try {
-                        movieTitle = movie.getString("original_title");
-                        posterPath = movie.getString("poster_path");
-                        synopsis = movie.getString("overview");
-                        userRating = movie.getInt("vote_average");
-                        releaseDate = movie.getString("release_date");
-                        currentMovie = new MovieData(movieTitle, posterPath, synopsis,
-                                userRating, releaseDate);
-                        movieData.add(currentMovie);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    for (int i = 0; i < moviesArray.length(); i++) {
+                        JSONObject movie = moviesArray.getJSONObject(i);
+
+                        try {
+                            movieTitle = movie.getString("original_title");
+                            posterPath = movie.getString("poster_path");
+                            synopsis = movie.getString("overview");
+                            userRating = movie.getInt("vote_average");
+                            releaseDate = movie.getString("release_date");
+                            currentMovie = new MovieData(movieTitle, posterPath, synopsis,
+                                    userRating, releaseDate);
+                            movieData.add(currentMovie);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             movieArrayAdapter.notifyDataSetChanged();
@@ -104,6 +116,10 @@ public class MovieFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         String sortOrder;
+        if (!internetConnection()) {
+            Log.i(TAG, "Unable to sort, No internet connection");
+            return true;
+        }
         switch (item.getItemId()) {
             case R.id.popularity:
                 sortOrder = "popular";
@@ -124,6 +140,16 @@ public class MovieFragment extends Fragment {
     private void updateMovies() {
         movieData.clear();
         new GetMoviesTask().execute();
+    }
+
+    private boolean internetConnection() {
+        boolean isConnected;
+        Context context = getContext();
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        return isConnected;
     }
 }
 

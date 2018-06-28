@@ -18,10 +18,7 @@ public class NetworkUtil {
     private static final String PAGE = "page";
     private static final String API_KEY = "api_key";
 
-
     static String getMovieInfo(String queryString, String apiKey) {
-
-        //the parameter queryString contains "popular" to determine the http query
 
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
@@ -40,6 +37,7 @@ public class NetworkUtil {
         //referenced example code from https://google-developer-training.gitbooks.io/android-developer-fundamentals-course-practicals/content/en/Unit%203/72_p_asynctask_asynctaskloader.html
 
         try {
+
             Uri buildURI = Uri.parse(movieBaseURL).buildUpon()
                     .appendQueryParameter(API_KEY, apiKey)
                     .appendQueryParameter(LANGUAGE, "en-US")
