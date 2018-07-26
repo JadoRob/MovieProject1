@@ -12,6 +12,7 @@ import java.net.URL;
 public class NetworkUtil {
 
     private static final String TAG = NetworkUtil.class.getSimpleName();
+    private static final String BASE_URL = "https://api.themoviedb.org/3/movie/";
     private static final String POPULAR_MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie/popular?";
     private static final String TOP_RATED_BASE_URL = "https://api.themoviedb.org/3/movie/top_rated?";
     private static final String LANGUAGE = "language";
@@ -70,7 +71,7 @@ public class NetworkUtil {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-
+            Log.i(TAG, "Unable to collect movie data");
             return null;
 
         } finally {

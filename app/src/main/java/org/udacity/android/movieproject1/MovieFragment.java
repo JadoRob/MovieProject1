@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -21,77 +20,20 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MovieFragment extends Fragment {
+public class MovieFragment extends Fragment implements OnTaskCompleted {
 
     private static final String TAG = MovieFragment.class.getSimpleName();
     public static MovieData currentMovie;
     public MovieArrayAdapter movieArrayAdapter;
     ArrayList<MovieData> movieData = new ArrayList<>();
-    String movieTitle;
-    String posterPath;
-    String synopsis;
-    int userRating;
-    String releaseDate;
 
 
-
-    class GetMoviesTask extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... strings) {
-
-            String jsonString;
-            String apiKey = getString(R.string.tmdb_api_key);
-            String sortOrder = MoviePreferences.getMovieSortOrder(getActivity());
-            jsonString = NetworkUtil.getMovieInfo(sortOrder, apiKey);
-            if (internetConnection()) {
-                Log.i(TAG, jsonString); //Confirms connection and request for data was successful.
-            } else {
-                Log.i(TAG, "Unable to collect movie data");
-            }
-            return jsonString;
-        }
-
-        @Override
-        protected void onPostExecute(String jsonString) {
-            super.onPostExecute(jsonString);
-
-            if (jsonString != null) {
-                try {
-                    JSONObject jsonObject = new JSONObject(jsonString);
-                    JSONArray moviesArray = jsonObject.getJSONArray("results");
-
-                    for (int i = 0; i < moviesArray.length(); i++) {
-                        JSONObject movie = moviesArray.getJSONObject(i);
-
-                        try {
-                            movieTitle = movie.getString("original_title");
-                            posterPath = movie.getString("poster_path");
-                            synopsis = movie.getString("overview");
-                            userRating = movie.getInt("vote_average");
-                            releaseDate = movie.getString("release_date");
-                            currentMovie = new MovieData(movieTitle, posterPath, synopsis,
-                                    userRating, releaseDate);
-                            movieData.add(currentMovie);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            movieArrayAdapter.notifyDataSetChanged();
-        }
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        new GetMoviesTask().execute();
+        new GetMoviesTask(getActivity()).execute();
         movieArrayAdapter = new MovieArrayAdapter(getActivity(), movieData);
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
         GridView gridView = rootView.findViewById(R.id.poster_grid);
@@ -137,9 +79,47 @@ public class MovieFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onTaskCompleted(String jsonString) {
+        String movieTitle;
+        String posterPath;
+        String synopsis;
+        int userRating;
+        int movieID;
+        String releaseDate;
+        if (jsonString != null && !jsonString.equals("")) {
+            try {
+                JSONObject jsonObject = new JSONObject(jsonString);
+                JSONArray moviesArray = jsonObject.getJSONArray("results");
+                for (int i = 0; i < moviesArray.length(); i++) {
+                    JSONObject movie = moviesArray.getJSONObject(i);
+                    try {
+                        movieTitle = movie.getString("original_title");
+                        posterPath = movie.getString("poster_path");
+                        synopsis = movie.getString("overview");
+                        userRating = movie.getInt("vote_average");
+                        movieID = movie.getInt("id");
+                        releaseDate = movie.getString("release_date");
+                        currentMovie = new MovieData(movieTitle, posterPath, synopsis,
+                                userRating, movieID, releaseDate);
+                        movieData.add(currentMovie);
+                        Log.i(TAG, "Movie: " + movieTitle + " ID: " + movieID);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        movieArrayAdapter.notifyDataSetChanged();
+    }
+
+
     private void updateMovies() {
         movieData.clear();
-        new GetMoviesTask().execute();
+        new GetMoviesTask(getActivity()).execute();
     }
 
     private boolean internetConnection() {
@@ -150,6 +130,11 @@ public class MovieFragment extends Fragment {
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         return isConnected;
+    }
+
+    private String[] getTrailers() {
+        String[] trailers = null;
+        return trailers;
     }
 }
 

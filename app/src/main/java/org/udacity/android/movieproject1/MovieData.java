@@ -7,7 +7,9 @@ public class MovieData {
      String movieTitle;
      String movieImage;
      String synopsis;
+     String[] trailers;
      int userRating;
+     int movieID;
      String releaseDate;
      final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p";
      final String IMAGE_SIZE = "/w500";
@@ -17,11 +19,12 @@ public class MovieData {
      }
 
      public MovieData(String movieTitle, String movieImage, String synopsis, int userRating,
-                      String releaseDate) {
+                      int movieID, String releaseDate) {
          this.movieTitle = movieTitle;
          this.movieImage = BASE_IMAGE_URL + IMAGE_SIZE + movieImage;
          this.synopsis = synopsis;
          this.userRating = userRating;
+         this.movieID = movieID;
          this.releaseDate = releaseDate;
 
 
