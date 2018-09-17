@@ -15,6 +15,8 @@ public class NetworkUtil {
     private static final String BASE_URL = "https://api.themoviedb.org/3/movie/";
     private static final String POPULAR_MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie/popular?";
     private static final String TOP_RATED_BASE_URL = "https://api.themoviedb.org/3/movie/top_rated?";
+    private static final String TRAILERS_ENDPOINT = "/videos?";
+    private static final String REVIEWS_ENDPOINT = "/reviews?";
     private static final String LANGUAGE = "language";
     private static final String PAGE = "page";
     private static final String API_KEY = "api_key";
@@ -30,9 +32,12 @@ public class NetworkUtil {
         //initialize base http with "popular" query
         if (queryString.equals("popular")) {
             movieBaseURL = POPULAR_MOVIE_BASE_URL;
-
         } else if (queryString.equals("rating")) {
             movieBaseURL = TOP_RATED_BASE_URL;
+        } else if (queryString.equals("trailers")){
+            movieBaseURL = BASE_URL + MovieFragment.currentMovie.movieID + TRAILERS_ENDPOINT;
+        } else if (queryString.equals("reviews")) {
+            movieBaseURL = BASE_URL + MovieFragment.currentMovie.movieID + REVIEWS_ENDPOINT;
         }
 
         //referenced example code from https://google-developer-training.gitbooks.io/android-developer-fundamentals-course-practicals/content/en/Unit%203/72_p_asynctask_asynctaskloader.html
@@ -87,6 +92,10 @@ public class NetworkUtil {
             }
             return movieJSONString;
         }
+
+    }
+
+    private static void loadFromDB() {
 
     }
 }

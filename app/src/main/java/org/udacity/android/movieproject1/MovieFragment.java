@@ -1,10 +1,14 @@
 package org.udacity.android.movieproject1;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,21 +23,24 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MovieFragment extends Fragment implements OnTaskCompleted {
 
     private static final String TAG = MovieFragment.class.getSimpleName();
     public static MovieData currentMovie;
     public MovieArrayAdapter movieArrayAdapter;
-    ArrayList<MovieData> movieData = new ArrayList<>();
-
+    List<MovieData> movieData = new ArrayList<>();
+    String queryString = "movies";
+    private MovieDatabase mDb;
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        new GetMoviesTask(getActivity()).execute();
+        new GetMoviesTask(MovieFragment.this, getActivity(), queryString).execute();
         movieArrayAdapter = new MovieArrayAdapter(getActivity(), movieData);
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
         GridView gridView = rootView.findViewById(R.id.poster_grid);
@@ -46,6 +53,7 @@ public class MovieFragment extends Fragment implements OnTaskCompleted {
                 startActivity(intent);
             }
         });
+        mDb = MovieDatabase.getInstance(getActivity()); //initializing database for saved movies
         return rootView;
     }
 
@@ -67,13 +75,17 @@ public class MovieFragment extends Fragment implements OnTaskCompleted {
                 sortOrder = "popular";
                 MoviePreferences.setMovieSortOrder(getActivity(), sortOrder);
                 updateMovies();
-
                 return true;
             case R.id.rating:
                 sortOrder = "rating";
                 MoviePreferences.setMovieSortOrder(getActivity(), sortOrder);
                 updateMovies();
                 return true;
+            case R.id.favorites:
+                sortOrder = "favorites";
+                MoviePreferences.setMovieSortOrder(getActivity(), sortOrder);
+                movieData = mDb.movieDao().loadMovies();
+                movieArrayAdapter.notifyDataSetChanged();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -81,6 +93,11 @@ public class MovieFragment extends Fragment implements OnTaskCompleted {
 
     @Override
     public void onTaskCompleted(String jsonString) {
+        parseMovieDetails(jsonString);
+        movieArrayAdapter.notifyDataSetChanged();
+    }
+
+    private void parseMovieDetails(String jsonString) {
         String movieTitle;
         String posterPath;
         String synopsis;
@@ -113,13 +130,24 @@ public class MovieFragment extends Fragment implements OnTaskCompleted {
                 e.printStackTrace();
             }
         }
-        movieArrayAdapter.notifyDataSetChanged();
+    }
+
+    private void getSavedMovie() {
+        AddMovieViewModelFactory factory = new AddMovieViewModelFactory(mDb, currentMovie.movieID);
+        final AddMovieViewModel viewModel
+                = ViewModelProviders.of(this, factory).get(AddMovieViewModel.class);
+        viewModel.getMovie().observe(this, new Observer<MovieData>() {
+            @Override
+            public void onChanged(@Nullable MovieData movieData) {
+                currentMovie.favorite = movieData.favorite;
+            }
+        });
     }
 
 
     private void updateMovies() {
         movieData.clear();
-        new GetMoviesTask(getActivity()).execute();
+        new GetMoviesTask(MovieFragment.this, getActivity(), queryString).execute();
     }
 
     private boolean internetConnection() {
@@ -132,9 +160,15 @@ public class MovieFragment extends Fragment implements OnTaskCompleted {
         return isConnected;
     }
 
-    private String[] getTrailers() {
-        String[] trailers = null;
-        return trailers;
-    }
+//    private void setupViewModel() {
+//        Log.i(TAG, "Retrieving saved movies from DataBase");
+//        MovieViewModel viewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
+//        viewModel.getMovies().observe(this, new Observer<List<MovieData>>() {
+//            @Override
+//            public void onChanged(@Nullable List<MovieData> movieData) {
+//                Log.d(TAG, "Updating movies from LiveData in ViewModel");
+//            }
+//        });
+//    }
 }
 

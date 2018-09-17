@@ -1,33 +1,59 @@
 package org.udacity.android.movieproject1;
 
-import android.graphics.Movie;
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.PrimaryKey;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DetailsActivity extends AppCompatActivity {
+public class DetailsActivity extends AppCompatActivity implements OnTaskCompleted {
 
     private static final String TAG = DetailsActivity.class.getSimpleName();
+    private Context context = DetailsActivity.this;
+    ImageButton favoriteButton;
+    private MovieDatabase mDb;
 
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
-
+        mDb = MovieDatabase.getInstance(getApplicationContext());
+        new GetMoviesTask(DetailsActivity.this, context, "trailers").execute();
+        new GetMoviesTask(DetailsActivity.this, context, "reviews").execute();
         ImageView movieImage = findViewById(R.id.movie_poster);
         TextView movieTitle = findViewById(R.id.movie_title);
         TextView releaseDate = findViewById(R.id.release_date);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date formatDate = new Date();
+        favoriteButton = findViewById(R.id.favoriteButton);
+        if (MovieFragment.currentMovie.favorite) {
+            favoriteButton.setImageResource(R.drawable.baseline_grade_black_36dp);
+        }
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                 updateFavorite();
+            }
+         });
 
         try {
             formatDate = dateFormat.parse(MovieFragment.currentMovie.releaseDate);
@@ -44,9 +70,110 @@ public class DetailsActivity extends AppCompatActivity {
         movieTitle.setText(MovieFragment.currentMovie.movieTitle);
         synopsis.setText(MovieFragment.currentMovie.synopsis);
         userRating.setText("Average Rating: " + MovieFragment.currentMovie.userRating + "/10");
+    }
 
+    private void updateFavorite() {
+        MovieData movieData = MovieFragment.currentMovie;
+        CharSequence toastMessage = null;
+        int duration = Toast.LENGTH_SHORT;
 
+        if (!MovieFragment.currentMovie.favorite) {
+            favoriteButton.setImageResource(R.drawable.baseline_grade_black_36dp);
+            MovieFragment.currentMovie.favorite = true;
+            mDb.movieDao().insertMovie(movieData);
+            Log.d(TAG, movieData.movieTitle + ", favorite = " + movieData.favorite);
+            toastMessage = "Added to favorites";
+
+        } else if (MovieFragment.currentMovie.favorite) {
+            favoriteButton.setImageResource(R.drawable.outline_grade_black_36dp);
+            MovieFragment.currentMovie.favorite = false;
+            mDb.movieDao().deleteMovie(movieData);
+            Log.d(TAG, movieData.movieTitle + ", favorite = " + movieData.favorite);
+            toastMessage = "Removed from favorites";
+        }
+        Toast toast = Toast.makeText(context, toastMessage, duration);
+        toast.show();
+    }
+
+    @Override
+    public void onTaskCompleted(String jsonString) {
+        Log.i(TAG, jsonString);
+        showTrailers(jsonString);
+        showReviews(jsonString);
+
+    }
+
+    private void showTrailers(String jsonString) {
+        if (jsonString != null && !jsonString.equals("")) {
+            try {
+                JSONObject jsonObject = new JSONObject(jsonString);
+                JSONArray trailersArray = jsonObject.getJSONArray("results");
+                for (int i = 0; i < trailersArray.length(); i++) {
+                    JSONObject trailer = trailersArray.getJSONObject(i);
+                    String trailerKey;
+                    String trailerName;
+                    try {
+                        trailerKey = trailer.getString("key");
+                        trailerName = trailer.getString("name");
+                        addTrailerLink(trailerKey, trailerName);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void showReviews(String jsonString) {
+        if (jsonString != null && !jsonString.equals("")) {
+            try {
+                JSONObject jsonObject = new JSONObject(jsonString);
+                JSONArray reviewsArray = jsonObject.getJSONArray("results");
+                for (int i = 0; i < reviewsArray.length(); i++) {
+                    JSONObject review = reviewsArray.getJSONObject(i);
+                    String author;
+                    String content;
+                    try {
+                        author = review.getString("author");
+                        content = review.getString("content");
+                        addUserReview(author, content);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addTrailerLink(final String key, String name) {
+        Button button = new Button(this);
+        button.setText(name);
+        LinearLayout trailerList = findViewById(R.id.trailerList);
+        trailerList.addView(button);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
+            }
+        });
 
 
     }
+
+    private void addUserReview(String author, String content) {
+        TextView reviewTextView = new TextView(this);
+        reviewTextView.setText(content + "\n\n" + "Reviewed by: " + author);
+        reviewTextView.setPadding(20, 20, 20, 200);
+        LinearLayout reviewList = findViewById(R.id.reviewList);
+        reviewList.addView(reviewTextView);
+    }
+
+
+
 }

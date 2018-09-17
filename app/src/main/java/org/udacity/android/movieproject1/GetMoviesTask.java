@@ -9,9 +9,12 @@ public class GetMoviesTask extends AsyncTask<String, Void, String> {
     private static final String TAG = GetMoviesTask.class.getSimpleName();
     private OnTaskCompleted taskCompleted;
     private Context context;
+    String queryString;
 
-    public GetMoviesTask(Context context) {
+    public GetMoviesTask(OnTaskCompleted activityContext, Context context, String queryString) {
         this.context = context;
+        this.taskCompleted = activityContext;
+        this.queryString = queryString;
     }
 
     @Override
@@ -19,7 +22,9 @@ public class GetMoviesTask extends AsyncTask<String, Void, String> {
 
         String jsonString;
         String apiKey = context.getString(R.string.tmdb_api_key);
-        String queryString = MoviePreferences.getMovieSortOrder(context);
+        if (queryString == "movies"){
+            queryString = MoviePreferences.getMovieSortOrder(context);
+        }
         jsonString = NetworkUtil.getMovieInfo(queryString, apiKey);
         return jsonString;
     }
