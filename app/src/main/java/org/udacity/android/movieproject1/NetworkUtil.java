@@ -1,5 +1,6 @@
 package org.udacity.android.movieproject1;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -11,40 +12,50 @@ import java.net.URL;
 
 public class NetworkUtil {
 
-    private static final String TAG = NetworkUtil.class.getSimpleName();
-    private static final String BASE_URL = "https://api.themoviedb.org/3/movie/";
-    private static final String POPULAR_MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie/popular?";
-    private static final String TOP_RATED_BASE_URL = "https://api.themoviedb.org/3/movie/top_rated?";
-    private static final String TRAILERS_ENDPOINT = "/videos?";
-    private static final String REVIEWS_ENDPOINT = "/reviews?";
-    private static final String LANGUAGE = "language";
-    private static final String PAGE = "page";
-    private static final String API_KEY = "api_key";
+    private final static String TAG = NetworkUtil.class.getSimpleName();
+    private final static String BASE_URL = "https://api.themoviedb.org/3/";
+    private final static String POPULAR_URL_ENDPOINT = "movie/popular";
+    private final static String TOP_RATED_URL_ENDPOINT = "movie/top_rated";
+    private final static String LANGUAGE = "language";
+    private final static String PAGE = "page";
+    private final static String API_KEY = "api_key";
 
-    static String getMovieInfo(String queryString, String apiKey) {
-
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
-        String movieBaseURL = null;
-        String movieJSONString = null;
+    private static HttpURLConnection urlConnection = null;
+    private static BufferedReader reader = null;
+    private static String movieJSONString = null;
 
 
-        //initialize base http with "popular" query
-        if (queryString.equals("popular")) {
-            movieBaseURL = POPULAR_MOVIE_BASE_URL;
-        } else if (queryString.equals("rating")) {
-            movieBaseURL = TOP_RATED_BASE_URL;
-        } else if (queryString.equals("trailers")){
-            movieBaseURL = BASE_URL + MovieFragment.currentMovie.movieID + TRAILERS_ENDPOINT;
-        } else if (queryString.equals("reviews")) {
-            movieBaseURL = BASE_URL + MovieFragment.currentMovie.movieID + REVIEWS_ENDPOINT;
+    static String sendQueryURL(String query) {
+        String queryURL = null;
+        String movieID = null;
+
+        switch (query) {
+            case "popular":
+                queryURL = BASE_URL + POPULAR_URL_ENDPOINT;
+                break;
+            case "rating":
+                queryURL = BASE_URL + TOP_RATED_URL_ENDPOINT;
+                break;
+            case "trailer":
+                queryURL = BASE_URL + "movie/" + movieID + "/videos";
+                break;
+            case "reviews":
+                queryURL = BASE_URL + "movie/" + movieID + "/videos";
+
         }
+        return  getJsonString(queryURL);
+    }
 
-        //referenced example code from https://google-developer-training.gitbooks.io/android-developer-fundamentals-course-practicals/content/en/Unit%203/72_p_asynctask_asynctaskloader.html
-
+    @Nullable
+    private static String getJsonString(String queryURL) {
+        String jsonString;
+        Log.i(TAG, queryURL);
         try {
 
-            Uri buildURI = Uri.parse(movieBaseURL).buildUpon()
+            // FOR TESTING PURPOSES, REMOVE PRIOR TO PUBLISHING!
+            String apiKey = "API KEY GOES HERE!";
+
+            Uri buildURI = Uri.parse(queryURL).buildUpon()
                     .appendQueryParameter(API_KEY, apiKey)
                     .appendQueryParameter(LANGUAGE, "en-US")
                     .appendQueryParameter(PAGE, "1").build();
@@ -55,9 +66,8 @@ public class NetworkUtil {
             //Throws an exception if this network operation is performed on the main thread!
             urlConnection.connect();
 
-
             InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
 
             if (inputStream == null) {
                 return null;
@@ -67,16 +77,16 @@ public class NetworkUtil {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                buffer.append(line + "\n");
+                buffer.append(line).append("\n");
             }
             if (buffer.length() == 0) {
                 return null;
             }
-            movieJSONString = buffer.toString();
+            jsonString = buffer.toString();
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            Log.i(TAG, "Unable to collect movie data");
+            Log.i(TAG, "Unable to collect movie data: " + queryURL);
             return null;
 
         } finally {
@@ -90,12 +100,8 @@ public class NetworkUtil {
                     e.printStackTrace();
                 }
             }
-            return movieJSONString;
         }
-
+        return jsonString;
     }
 
-    private static void loadFromDB() {
-
-    }
 }

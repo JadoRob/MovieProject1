@@ -9,28 +9,31 @@ import android.util.Log;
 @Database(entities = {MovieData.class}, version = 1, exportSchema = false)
 public abstract class MovieDatabase extends RoomDatabase {
 
+    public abstract MovieDao movieDao();
     private static final String LOG_TAG = MovieDatabase.class.getSimpleName();
-    private static final Object LOCK = new Object();
     private static final String DATABASE_NAME = "favorite_movies";
-    private static MovieDatabase sInstance;
+    private static volatile MovieDatabase INSTANCE;
 
-    public static MovieDatabase getInstance(Context context) {
-        if (sInstance == null) {
+    public static MovieDatabase getDatabase(final Context context) {
+        if (INSTANCE == null) {
             //this only occurs if there is no database, (singleton class)
-            synchronized (LOCK) {
+            synchronized (MovieDatabase.class) {
                 Log.d(LOG_TAG, "Generating Favorites Database");
-                sInstance = Room.databaseBuilder(context.getApplicationContext(),
-                        MovieDatabase.class, MovieDatabase.DATABASE_NAME)
-                        //.fallbackToDestructiveMigration()
-                        .allowMainThreadQueries() //TEMPORARILY USED TO CONFIRM FUNCTIONALITY
-                        .build();
+                if (INSTANCE == null) {
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                            MovieDatabase.class, MovieDatabase.DATABASE_NAME)
+                            .fallbackToDestructiveMigration()
+                            //.allowMainThreadQueries() //TEMPORARY, USED TO CONFIRM FUNCTIONALITY
+                            .build();
+                }
+
             }
         }
         //if database already exists, the instance is returned.
         Log.d(LOG_TAG, "Retrieving instance of favorites database");
-        return sInstance;
+        return INSTANCE;
     }
 
-    public abstract MovieDao movieDao();
+
 
 }

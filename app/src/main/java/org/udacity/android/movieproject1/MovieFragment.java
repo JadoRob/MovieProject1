@@ -1,6 +1,5 @@
 package org.udacity.android.movieproject1;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -25,14 +24,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovieFragment extends Fragment implements OnTaskCompleted {
+public class MovieFragment extends Fragment {
 
     private static final String TAG = MovieFragment.class.getSimpleName();
-    public static MovieData currentMovie;
-    public MovieArrayAdapter movieArrayAdapter;
-    List<MovieData> movieData = new ArrayList<>();
+    //public static MovieData currentMovie; //to be replaced by LiveData (MovieViewModel)
+    //public MovieArrayAdapter movieArrayAdapter; //to be replaced by RecyclerView;
+    //List<MovieData> movieData = new ArrayList<>(); //to be replaced by LiveData (MovieViewModel)
     String queryString = "movies";
-    private MovieDatabase mDb;
+    private MovieViewModel mMovieViewModel;
 
 
     @Override
@@ -40,20 +39,25 @@ public class MovieFragment extends Fragment implements OnTaskCompleted {
                              Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        new GetMoviesTask(MovieFragment.this, getActivity(), queryString).execute();
-        movieArrayAdapter = new MovieArrayAdapter(getActivity(), movieData);
+        //Creates a connection to the MovieViewModel and UI (fragment)
+        mMovieViewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
-        GridView gridView = rootView.findViewById(R.id.poster_grid);
-        gridView.setAdapter(movieArrayAdapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                currentMovie = movieData.get(position);
-                Intent intent = new Intent(getActivity(), DetailsActivity.class);
-                startActivity(intent);
-            }
-        });
-        mDb = MovieDatabase.getInstance(getActivity()); //initializing database for saved movies
+
+//Old logic prior to adding Architecture Components (ViewModel, Room),
+// also implementing RecyclerView
+//        new MovieAsyncTask(this, queryString).execute();
+//        movieArrayAdapter = new MovieArrayAdapter(getActivity(), movieData);
+//        GridView gridView = rootView.findViewById(R.id.poster_grid);
+//        gridView.setAdapter(movieArrayAdapter);
+//        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                currentMovie = movieData.get(position);
+//                Intent intent = new Intent(getActivity(), DetailsActivity.class);
+//                startActivity(intent);
+//            }
+//        });
+
         return rootView;
     }
 
@@ -71,84 +75,81 @@ public class MovieFragment extends Fragment implements OnTaskCompleted {
             return true;
         }
         switch (item.getItemId()) {
+            //Removed onSaveInstanceState() logic for saving sort order and applied to the
+            //MovieViewModel class
             case R.id.popularity:
                 sortOrder = "popular";
-                MoviePreferences.setMovieSortOrder(getActivity(), sortOrder);
-                updateMovies();
+                mMovieViewModel.setMovieSortOrder(sortOrder);
+                //updateMovies(); this is removed, update will be handled by a call to the
+                // RecyclerView
                 return true;
             case R.id.rating:
                 sortOrder = "rating";
-                MoviePreferences.setMovieSortOrder(getActivity(), sortOrder);
-                updateMovies();
+                mMovieViewModel.setMovieSortOrder(sortOrder);
+                //updateMovies(); this is removed, update will be handled by a call to the
+                // RecyclerView
                 return true;
             case R.id.favorites:
                 sortOrder = "favorites";
-                MoviePreferences.setMovieSortOrder(getActivity(), sortOrder);
-                movieData = mDb.movieDao().loadMovies();
-                movieArrayAdapter.notifyDataSetChanged();
+                mMovieViewModel.setMovieSortOrder(sortOrder);
+                //movieData = mDb.movieDao().getFavorites(); //UI should not have access to DB
+                //movieArrayAdapter.notifyDataSetChanged(); //replacing with RecycleView
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    @Override
-    public void onTaskCompleted(String jsonString) {
-        parseMovieDetails(jsonString);
-        movieArrayAdapter.notifyDataSetChanged();
-    }
+    //AsyncTask logic is handled by MovieRepository, which returns data to MovieViewModel to
+    //parse the data.
 
-    private void parseMovieDetails(String jsonString) {
-        String movieTitle;
-        String posterPath;
-        String synopsis;
-        int userRating;
-        int movieID;
-        String releaseDate;
-        if (jsonString != null && !jsonString.equals("")) {
-            try {
-                JSONObject jsonObject = new JSONObject(jsonString);
-                JSONArray moviesArray = jsonObject.getJSONArray("results");
-                for (int i = 0; i < moviesArray.length(); i++) {
-                    JSONObject movie = moviesArray.getJSONObject(i);
-                    try {
-                        movieTitle = movie.getString("original_title");
-                        posterPath = movie.getString("poster_path");
-                        synopsis = movie.getString("overview");
-                        userRating = movie.getInt("vote_average");
-                        movieID = movie.getInt("id");
-                        releaseDate = movie.getString("release_date");
-                        currentMovie = new MovieData(movieTitle, posterPath, synopsis,
-                                userRating, movieID, releaseDate);
-                        movieData.add(currentMovie);
-                        Log.i(TAG, "Movie: " + movieTitle + " ID: " + movieID);
+//    @Override
+//    public void onTaskCompleted(String jsonString) {
+//        parseMovieDetails(jsonString);
+//        movieArrayAdapter.notifyDataSetChanged();
+//    }
 
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//Logic removed, parsing will be handled by the MovieRepository prior to being passed to
+//the ViewModel
+//    private void parseMovieDetails(String jsonString) {
+//        String movieTitle;
+//        String posterPath;
+//        String synopsis;
+//        int userRating;
+//        int movieID;
+//        String releaseDate;
+//        if (jsonString != null && !jsonString.equals("")) {
+//            try {
+//                JSONObject jsonObject = new JSONObject(jsonString);
+//                JSONArray moviesArray = jsonObject.getJSONArray("results");
+//                for (int i = 0; i < moviesArray.length(); i++) {
+//                    JSONObject movie = moviesArray.getJSONObject(i);
+//                    try {
+//                        movieTitle = movie.getString("original_title");
+//                        posterPath = movie.getString("poster_path");
+//                        synopsis = movie.getString("overview");
+//                        userRating = movie.getInt("vote_average");
+//                        movieID = movie.getInt("id");
+//                        releaseDate = movie.getString("release_date");
+//                        currentMovie = new MovieData(movieTitle, posterPath, synopsis,
+//                                userRating, movieID, releaseDate);
+//                        movieData.add(currentMovie);
+//                        Log.i(TAG, "Movie: " + movieTitle + " ID: " + movieID);
+//
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
-    private void getSavedMovie() {
-        AddMovieViewModelFactory factory = new AddMovieViewModelFactory(mDb, currentMovie.movieID);
-        final AddMovieViewModel viewModel
-                = ViewModelProviders.of(this, factory).get(AddMovieViewModel.class);
-        viewModel.getMovie().observe(this, new Observer<MovieData>() {
-            @Override
-            public void onChanged(@Nullable MovieData movieData) {
-                currentMovie.favorite = movieData.favorite;
-            }
-        });
-    }
-
-
-    private void updateMovies() {
-        movieData.clear();
-        new GetMoviesTask(MovieFragment.this, getActivity(), queryString).execute();
-    }
+//This logic will be handled by MovieViewModel
+//    private void updateMovies() {
+//        movieData.clear();
+//        new MovieAsyncTask(MovieFragment.this, queryString).execute();
+//    }
 
     private boolean internetConnection() {
         boolean isConnected;

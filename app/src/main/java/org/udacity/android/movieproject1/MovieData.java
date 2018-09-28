@@ -7,6 +7,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity (tableName = "movies") class MovieData {
@@ -19,13 +20,11 @@ import java.util.List;
     int userRating;
     String releaseDate;
     Boolean favorite = false;
-    @Ignore final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p";
-    @Ignore final String IMAGE_SIZE = "/w500";
 
      public MovieData(String movieTitle, String movieImage, String synopsis, int userRating,
                       int movieID, String releaseDate) {
          this.movieTitle = movieTitle;
-         this.movieImage = BASE_IMAGE_URL + IMAGE_SIZE + movieImage;
+         this.movieImage = movieImage;
          this.synopsis = synopsis;
          this.userRating = userRating;
          this.movieID = movieID;
@@ -33,6 +32,6 @@ import java.util.List;
      }
 
      void setFavorite(boolean favorite) {
-         this.favorite = true;
+         this.favorite = favorite;
      }
 }

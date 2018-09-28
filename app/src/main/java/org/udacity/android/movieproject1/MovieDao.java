@@ -14,14 +14,21 @@ import java.util.List;
 public interface MovieDao {
 
     @Query("SELECT * FROM movies ORDER BY movie_title")
-    List<MovieData> loadMovies();
+    LiveData<List<MovieData>> getAllMovies();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMovie(MovieData movieData);
+    void saveMovie(MovieData movieData);
 
     @Delete
     void deleteMovie(MovieData movieData);
 
+    @Query("DELETE FROM movies")
+    void deleteAll();
+
     @Query("SELECT * FROM movies WHERE movieID = :id")
     LiveData<MovieData> loadMovieById(int id);
+
+
+//    @Query("SELECT * FROM movies WHERE favorite = :true")
+//    LiveData<List<MovieData>> getAllFavorites();
 }
