@@ -10,12 +10,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MovieRepository implements OnTaskCompleted {
 
     private String query;
     private MovieDao mMovieDao;
     private LiveData<List<MovieData>> mMovieList;
+
     private Context mContext;
 
     private static final String TAG = MovieRepository.class.getSimpleName();
@@ -27,18 +29,19 @@ public class MovieRepository implements OnTaskCompleted {
         mMovieDao = db.movieDao();
         mMovieList = mMovieDao.getAllMovies();
         query = MoviePreferences.getMovieSortOrder(application);
+        if (mMovieList == null)
         new MovieAsyncTask(this, query).execute();
 
     }
 
-    //this method returns all the favorite movies saved in MovieDatabase
+    //this method returns all the movies saved in MovieDatabase
     LiveData<List<MovieData>> getAllMovies() {
         return mMovieList;
     }
 
-//    MovieData getFavorites() {
-//        return mMovie;
-//    }
+    LiveData<MovieData> getMovie(int position) {
+        return mMovieDao.getMovie(position);
+    }
 
     //method for saving mMovie to the favorites database
     public void saveMovie(final MovieData movie) {
@@ -87,6 +90,7 @@ public class MovieRepository implements OnTaskCompleted {
         String baseImageUrl = "https://image.tmdb.org/t/p/w500" ;
         String nullMessage = "Unable to parse, JSON String is Null";
         String methodName = "From parseMovieDetails method: ";
+        int position;
         Log.d(TAG, jsonString);
 
         if (jsonString != null && !jsonString.equals("")) {
@@ -102,9 +106,11 @@ public class MovieRepository implements OnTaskCompleted {
                         userRating = movie.getInt("vote_average");
                         movieID = movie.getInt("id");
                         releaseDate = movie.getString("release_date");
+                        position = i;
                         currentMovie = new MovieData(movieTitle, posterPath, synopsis,
-                                userRating, movieID, releaseDate);
+                                userRating, movieID, releaseDate, position);
                         saveMovie(currentMovie);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

@@ -19,7 +19,17 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
 
     private final LayoutInflater mInflater;
     private List<MovieData> mMovies = new ArrayList<>();
+    private View.OnClickListener onItemClickListener;
+    private OnItemClickListener mListener;
     private static final String TAG = MovieListAdapter.class.getSimpleName();
+
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        mListener = listener;
+    }
 
     MovieListAdapter(Context context) {mInflater = LayoutInflater.from(context); }
 
@@ -30,8 +40,24 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         private MovieViewHolder(View itemView) {
             super(itemView);
             movieItemView = itemView.findViewById(R.id.posterImageView);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mListener != null) {
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION) {
+                            mListener.onItemClick(position);
+                        }
+                    }
+                }
+            });
         }
     }
+
+    public void setItemClickListener(View.OnClickListener clickListener)
+        {
+            onItemClickListener = clickListener;
+        }
 
     @NonNull
     @Override
@@ -46,7 +72,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         if (mMovies != null) {
             MovieData currentMovie = mMovies.get(position);
             Log.d(TAG, "Movie Image URL:" + currentMovie.movieImage );
-            Picasso.get().load(currentMovie.movieImage).fit().centerInside()
+            Picasso.get().load(currentMovie.movieImage)
                     .placeholder(R.drawable.loading)
                     .into(holder.movieItemView);
         }
@@ -54,9 +80,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
 
     @Override
     public int getItemCount() {
-
             return mMovies.size();
-
     }
 
     public void showMovies(List<MovieData> movies) {

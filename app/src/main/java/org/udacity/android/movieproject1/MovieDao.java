@@ -13,8 +13,11 @@ import java.util.List;
 @Dao
 public interface MovieDao {
 
-    @Query("SELECT * FROM movies ORDER BY movie_title")
+    @Query("SELECT * FROM movies ORDER BY position")
     LiveData<List<MovieData>> getAllMovies();
+
+    @Query("SELECT * FROM movies WHERE position = :position")
+    LiveData<MovieData> getMovie(int position);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void saveMovie(MovieData movieData);
@@ -24,9 +27,6 @@ public interface MovieDao {
 
     @Query("DELETE FROM movies")
     void deleteAll();
-
-    @Query("SELECT * FROM movies WHERE movieID = :id")
-    LiveData<MovieData> loadMovieById(int id);
 
 
 //    @Query("SELECT * FROM movies WHERE favorite = :true")

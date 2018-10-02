@@ -7,6 +7,7 @@ import android.app.FragmentTransaction;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Movie;
@@ -23,13 +24,18 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MovieListAdapter.OnItemClickListener,
+        Serializable {
 
     private MovieViewModel mMovieViewModel;
     private String sortOrder;
+    public static final String EXTRA_SELECTION = "Selected Movie";
+
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -42,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
 
         final MovieListAdapter adapter = new MovieListAdapter(this);
         recyclerView.setAdapter(adapter);
+        adapter.setOnItemClickListener(MainActivity.this);
+
+
 
         mMovieViewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
         mMovieViewModel.getAllMovies().observe(this, new Observer<List<MovieData>>() {
@@ -54,4 +63,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onItemClick(int position) {
+        Intent detailsIntent = new Intent(this, DetailsActivity.class);
+        detailsIntent.putExtra(EXTRA_SELECTION, position);
+        startActivity(detailsIntent);
+    }
 }

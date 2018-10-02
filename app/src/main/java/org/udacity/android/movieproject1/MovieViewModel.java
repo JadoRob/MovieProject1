@@ -6,6 +6,7 @@ import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MovieViewModel extends AndroidViewModel {
 
@@ -13,6 +14,7 @@ public class MovieViewModel extends AndroidViewModel {
     private LiveData<List<MovieData>> movieList;
     private MovieRepository mMovieRepository;
     private String sortOrder;
+
 
     public MovieViewModel(@NonNull Application application) {
         super(application);
@@ -27,6 +29,10 @@ public class MovieViewModel extends AndroidViewModel {
     public void saveFavorite(MovieData movie) {mMovieRepository.saveMovie(movie); }
 
     public void deleteAll() { mMovieRepository.deleteAll(); }
+
+    public MovieData getMovie(int position) {
+        return Objects.requireNonNull(movieList.getValue()).get(position);
+    }
 
     public void setMovieSortOrder(String sortOrder) {
         this.sortOrder = sortOrder;

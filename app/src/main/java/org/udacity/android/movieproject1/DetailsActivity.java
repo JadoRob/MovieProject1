@@ -1,8 +1,12 @@
 package org.udacity.android.movieproject1;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,35 +17,77 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import static org.udacity.android.movieproject1.MainActivity.EXTRA_SELECTION;
 
 public class DetailsActivity extends AppCompatActivity implements OnTaskCompleted {
 
     private static final String TAG = DetailsActivity.class.getSimpleName();
     private Context context = DetailsActivity.this;
+    private DetailsViewModel mDetailsViewModel;
+    private MovieData currentMovie;
     ImageButton favoriteButton;
-    private MovieDatabase mDb;
+
+
+    //private MovieDatabase mDb; //UI now uses MovieViewModel for retrieving data.
 
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
-        mDb = MovieDatabase.getDatabase(getApplicationContext());
 
-        //new MovieAsyncTask(DetailsActivity.this, context, "trailers").execute();
-        //new MovieAsyncTask(DetailsActivity.this, context, "reviews").execute();
-        //retrieving data is now handled by the MovieRepository
-
-        ImageView movieImage = findViewById(R.id.movie_poster);
-        TextView movieTitle = findViewById(R.id.movie_title);
-        TextView releaseDate = findViewById(R.id.release_date);
+        final ImageView posterImage = findViewById(R.id.movie_poster);
+        final TextView movieTitle = findViewById(R.id.movie_title);
+        final TextView releaseDate = findViewById(R.id.release_date);
+        final TextView synopsis = findViewById(R.id.synopsis);
+        final TextView userRating = findViewById(R.id.user_rating);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date formatDate = new Date();
+        Date formatDate;
+
+//        try {
+//            formatDate = dateFormat.parse(currentMovie.releaseDate);
+//            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMMM dd, yyyy");
+//            String date = simpleDateFormat.format(formatDate);
+//            releaseDate.setText(date);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
+
+        Intent intent = getIntent();
+        final int movieSelected = intent.getIntExtra(EXTRA_SELECTION, 0);
+        mDetailsViewModel = ViewModelProviders.of(this).get(DetailsViewModel.class);
+        mDetailsViewModel.getMovie(movieSelected).observe(this, new Observer<MovieData>() {
+            @Override
+            public void onChanged(@Nullable MovieData movieData) {
+                currentMovie = movieData;
+                Picasso.get().load(movieData.movieImage)
+                        .placeholder(R.drawable.loading)
+                        .into(posterImage);
+
+                movieTitle.setText(currentMovie.movieTitle);
+                synopsis.setText(currentMovie.synopsis);
+                userRating.setText("Average Rating: " + currentMovie.userRating + "/10");
+            }
+        });
+    }
+
+
+
+
+
+
+
 
 // Logic for favorite button being handled by LiveData
 //        favoriteButton = findViewById(R.id.favoriteButton);
-//        if (MovieFragment.currentMovie.favorite) {
+//        if (MovieFragment.movie.favorite) {
 //            favoriteButton.setImageResource(R.drawable.baseline_grade_black_36dp);
 //        }
 //        favoriteButton.setOnClickListener(new View.OnClickListener() {
@@ -52,41 +98,31 @@ public class DetailsActivity extends AppCompatActivity implements OnTaskComplete
 //         });
 
 //Activities no longer handle data processing, moving to MovieViewModel
-//        try {
-//            formatDate = dateFormat.parse(MovieFragment.currentMovie.releaseDate);
-//            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMMM dd, yyyy");
-//            String date = simpleDateFormat.format(formatDate);
-//            releaseDate.setText(date);
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//        }
 
-        TextView synopsis = findViewById(R.id.synopsis);
-        TextView userRating = findViewById(R.id.user_rating);
+
+
 
 //Movie Details to be passed from MovieViewModel
-//        Picasso.get().load(MovieFragment.currentMovie.movieImage).into(movieImage);
-//        movieTitle.setText(MovieFragment.currentMovie.movieTitle);
-//        synopsis.setText(MovieFragment.currentMovie.synopsis);
-//        userRating.setText("Average Rating: " + MovieFragment.currentMovie.userRating + "/10");
-    }
+
+
+
 
     //logic moving to MovieViewModel
 //    private void updateFavorite() {
-//        MovieData movieData = MovieFragment.currentMovie;
+//        MovieData movieData = MovieFragment.movie;
 //        CharSequence toastMessage = null;
 //        int duration = Toast.LENGTH_SHORT;
 //
-//        if (!MovieFragment.currentMovie.favorite) {
+//        if (!MovieFragment.movie.favorite) {
 //            favoriteButton.setImageResource(R.drawable.baseline_grade_black_36dp);
-//            MovieFragment.currentMovie.favorite = true;
+//            MovieFragment.movie.favorite = true;
 //            mDb.movieDao().saveMovie(movieData);
 //            Log.d(TAG, movieData.movieTitle + ", favorite = " + movieData.favorite);
 //            toastMessage = "Added to favorites";
 //
-//        } else if (MovieFragment.currentMovie.favorite) {
+//        } else if (MovieFragment.movie.favorite) {
 //            favoriteButton.setImageResource(R.drawable.outline_grade_black_36dp);
-//            MovieFragment.currentMovie.favorite = false;
+//            MovieFragment.movie.favorite = false;
 //            mDb.movieDao().deleteMovie(movieData);
 //            Log.d(TAG, movieData.movieTitle + ", favorite = " + movieData.favorite);
 //            toastMessage = "Removed from favorites";

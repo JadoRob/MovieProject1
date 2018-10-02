@@ -27,7 +27,7 @@ import java.util.List;
 public class MovieFragment extends Fragment {
 
     private static final String TAG = MovieFragment.class.getSimpleName();
-    //public static MovieData currentMovie; //to be replaced by LiveData (MovieViewModel)
+    //public static MovieData movie; //to be replaced by LiveData (MovieViewModel)
     //public MovieArrayAdapter movieArrayAdapter; //to be replaced by RecyclerView;
     //List<MovieData> movieData = new ArrayList<>(); //to be replaced by LiveData (MovieViewModel)
     String queryString = "movies";
@@ -52,7 +52,7 @@ public class MovieFragment extends Fragment {
 //        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //            @Override
 //            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                currentMovie = movieData.get(position);
+//                movie = movieData.get(position);
 //                Intent intent = new Intent(getActivity(), DetailsActivity.class);
 //                startActivity(intent);
 //            }
@@ -130,9 +130,9 @@ public class MovieFragment extends Fragment {
 //                        userRating = movie.getInt("vote_average");
 //                        movieID = movie.getInt("id");
 //                        releaseDate = movie.getString("release_date");
-//                        currentMovie = new MovieData(movieTitle, posterPath, synopsis,
+//                        movie = new MovieData(movieTitle, posterPath, synopsis,
 //                                userRating, movieID, releaseDate);
-//                        movieData.add(currentMovie);
+//                        movieData.add(movie);
 //                        Log.i(TAG, "Movie: " + movieTitle + " ID: " + movieID);
 //
 //                    } catch (Exception e) {

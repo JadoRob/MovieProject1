@@ -13,6 +13,7 @@ import java.util.List;
 @Entity (tableName = "movies") class MovieData {
 
     @PrimaryKey
+    int position;
     int movieID;
     @ColumnInfo (name = "movie_title") String movieTitle;
     String movieImage;
@@ -22,13 +23,14 @@ import java.util.List;
     Boolean favorite = false;
 
      public MovieData(String movieTitle, String movieImage, String synopsis, int userRating,
-                      int movieID, String releaseDate) {
+                      int movieID, String releaseDate, int position) {
          this.movieTitle = movieTitle;
          this.movieImage = movieImage;
          this.synopsis = synopsis;
          this.userRating = userRating;
          this.movieID = movieID;
          this.releaseDate = releaseDate;
+         this.position = position;
      }
 
      void setFavorite(boolean favorite) {
