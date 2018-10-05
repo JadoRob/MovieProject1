@@ -71,7 +71,6 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
         if (mMovies != null) {
             MovieData currentMovie = mMovies.get(position);
-            Log.d(TAG, "Movie Image URL:" + currentMovie.movieImage );
             Picasso.get().load(currentMovie.movieImage)
                     .placeholder(R.drawable.loading)
                     .into(holder.movieItemView);
@@ -84,7 +83,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
     }
 
     public void showMovies(List<MovieData> movies) {
-        if (movies != null )
+
             this.mMovies = movies;
         notifyDataSetChanged();
     }

@@ -12,8 +12,8 @@ public class MovieViewModel extends AndroidViewModel {
 
     private static final String TAG = MovieViewModel.class.getSimpleName();
     private LiveData<List<MovieData>> movieList;
+    private LiveData<MovieData> movie;
     private MovieRepository mMovieRepository;
-    private String sortOrder;
 
 
     public MovieViewModel(@NonNull Application application) {
@@ -30,12 +30,16 @@ public class MovieViewModel extends AndroidViewModel {
 
     public void deleteAll() { mMovieRepository.deleteAll(); }
 
-    public MovieData getMovie(int position) {
-        return Objects.requireNonNull(movieList.getValue()).get(position);
+    public void updateMovies() {
+        mMovieRepository.updateMovies();
+    }
+
+    public LiveData<MovieData> getMovie(int position) {
+        movie = mMovieRepository.getMovie(position);
+        return movie;
     }
 
     public void setMovieSortOrder(String sortOrder) {
-        this.sortOrder = sortOrder;
         MoviePreferences.setMovieSortOrder(getApplication(), sortOrder);
     }
 }

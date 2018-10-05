@@ -3,6 +3,7 @@ package org.udacity.android.movieproject1;
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -29,7 +30,6 @@ public class MovieRepository implements OnTaskCompleted {
         mMovieDao = db.movieDao();
         mMovieList = mMovieDao.getAllMovies();
         query = MoviePreferences.getMovieSortOrder(application);
-        if (mMovieList == null)
         new MovieAsyncTask(this, query).execute();
 
     }
@@ -43,22 +43,27 @@ public class MovieRepository implements OnTaskCompleted {
         return mMovieDao.getMovie(position);
     }
 
+    public void deleteAll() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mMovieDao.deleteAll();
+            }
+        });
+        thread.start();
+    }
+
+    public void updateMovies() {
+        query = MoviePreferences.getMovieSortOrder(mContext);
+        new MovieAsyncTask(this, query).execute();
+    }
+
     //method for saving mMovie to the favorites database
     public void saveMovie(final MovieData movie) {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 mMovieDao.saveMovie(movie);
-            }
-        });
-        thread.start();
-    }
-
-    public void deleteAll() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mMovieDao.deleteAll();
             }
         });
         thread.start();
@@ -72,10 +77,9 @@ public class MovieRepository implements OnTaskCompleted {
                     .LENGTH_SHORT).show();
         } else {
             parseMovies(s);
-            int sizeOfMovieList = mMovieList.getValue().size();
-            Log.d(TAG, "from onTaskCompleted: " + sizeOfMovieList);
         }
     }
+
 
     //Parses the jsonString
     private void parseMovies(String jsonString) {
@@ -87,7 +91,7 @@ public class MovieRepository implements OnTaskCompleted {
         int userRating;
         int movieID;
         String releaseDate;
-        String baseImageUrl = "https://image.tmdb.org/t/p/w500" ;
+        String baseImageUrl = "https://image.tmdb.org/t/p/w780" ;
         String nullMessage = "Unable to parse, JSON String is Null";
         String methodName = "From parseMovieDetails method: ";
         int position;
@@ -110,6 +114,7 @@ public class MovieRepository implements OnTaskCompleted {
                         currentMovie = new MovieData(movieTitle, posterPath, synopsis,
                                 userRating, movieID, releaseDate, position);
                         saveMovie(currentMovie);
+                        //Log.d(TAG, "Movie Name: " + currentMovie.movieTitle);
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -120,6 +125,24 @@ public class MovieRepository implements OnTaskCompleted {
                 e.printStackTrace();
             }
         } else { Log.d(TAG, methodName + nullMessage); }
-
     }
+
+//    private static class updateAsyncTask extends AsyncTask<String, Void, String> {
+//
+//        private MovieDao mAsyncTaskDao;
+//        private String query;
+//
+//        @Override
+//        protected String doInBackground(String... params) {
+//            String jsonString;
+//            jsonString = NetworkUtil.sendQueryURL(query);
+//            return jsonString;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String jsonString) {
+//
+//        }
+//    }
+
 }

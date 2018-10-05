@@ -18,15 +18,14 @@ public abstract class MovieDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             //this only occurs if there is no database, (singleton class)
             synchronized (MovieDatabase.class) {
-                Log.d(LOG_TAG, "Generating Favorites Database");
                 if (INSTANCE == null) {
+                    Log.d(LOG_TAG, "Generating Favorites Database");
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             MovieDatabase.class, MovieDatabase.DATABASE_NAME)
                             .fallbackToDestructiveMigration()
                             //.allowMainThreadQueries() //TEMPORARY, USED TO CONFIRM FUNCTIONALITY
                             .build();
                 }
-
             }
         }
         //if database already exists, the instance is returned.

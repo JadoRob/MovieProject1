@@ -86,6 +86,7 @@ public class MovieFragment extends Fragment {
             case R.id.rating:
                 sortOrder = "rating";
                 mMovieViewModel.setMovieSortOrder(sortOrder);
+
                 //updateMovies(); this is removed, update will be handled by a call to the
                 // RecyclerView
                 return true;

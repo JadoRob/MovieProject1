@@ -30,8 +30,7 @@ import static org.udacity.android.movieproject1.MainActivity.EXTRA_SELECTION;
 public class DetailsActivity extends AppCompatActivity implements OnTaskCompleted {
 
     private static final String TAG = DetailsActivity.class.getSimpleName();
-    private Context context = DetailsActivity.this;
-    private DetailsViewModel mDetailsViewModel;
+    private MovieViewModel mMovieViewModel;
     private MovieData currentMovie;
     ImageButton favoriteButton;
 
@@ -62,8 +61,8 @@ public class DetailsActivity extends AppCompatActivity implements OnTaskComplete
 
         Intent intent = getIntent();
         final int movieSelected = intent.getIntExtra(EXTRA_SELECTION, 0);
-        mDetailsViewModel = ViewModelProviders.of(this).get(DetailsViewModel.class);
-        mDetailsViewModel.getMovie(movieSelected).observe(this, new Observer<MovieData>() {
+        mMovieViewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
+        mMovieViewModel.getMovie(movieSelected).observe(this, new Observer<MovieData>() {
             @Override
             public void onChanged(@Nullable MovieData movieData) {
                 currentMovie = movieData;
