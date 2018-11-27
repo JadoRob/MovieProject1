@@ -36,12 +36,20 @@ public class NetworkUtil {
             case "rating":
                 queryURL = BASE_URL + TOP_RATED_URL_ENDPOINT;
                 break;
+
+        }
+        return  getJsonString(queryURL);
+    }
+
+    static String sendQueryURL(String query, int movieID) {
+        String queryURL = null;
+
+        switch (query) {
             case "trailer":
                 queryURL = BASE_URL + "movie/" + movieID + "/videos";
                 break;
             case "reviews":
-                queryURL = BASE_URL + "movie/" + movieID + "/videos";
-
+                queryURL = BASE_URL + "movie/" + movieID + "/reviews";
         }
         return  getJsonString(queryURL);
     }
@@ -49,7 +57,7 @@ public class NetworkUtil {
     @Nullable
     private static String getJsonString(String queryURL) {
         String jsonString;
-        Log.i(TAG, queryURL);
+
         try {
 
             // FOR TESTING PURPOSES, REMOVE PRIOR TO PUBLISHING!

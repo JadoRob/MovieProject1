@@ -4,7 +4,6 @@ package org.udacity.android.movieproject1;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
 import java.util.ArrayList;
@@ -20,20 +19,20 @@ import java.util.List;
     String synopsis;
     int userRating;
     String releaseDate;
-    Boolean favorite = false;
+    public Boolean favorite = false;
 
-     public MovieData(String movieTitle, String movieImage, String synopsis, int userRating,
-                      int movieID, String releaseDate, int position) {
-         this.movieTitle = movieTitle;
-         this.movieImage = movieImage;
-         this.synopsis = synopsis;
-         this.userRating = userRating;
-         this.movieID = movieID;
-         this.releaseDate = releaseDate;
-         this.position = position;
-     }
+    public MovieData(String movieTitle, String movieImage, String synopsis, int userRating,
+                     int movieID, String releaseDate, int position) {
+        this.movieTitle = movieTitle;
+        this.movieImage = movieImage;
+        this.synopsis = synopsis;
+        this.userRating = userRating;
+        this.movieID = movieID;
+        this.releaseDate = releaseDate;
+        this.position = position;
+    }
 
-     void setFavorite(boolean favorite) {
-         this.favorite = favorite;
-     }
+    void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
 }

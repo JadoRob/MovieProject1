@@ -82,6 +82,8 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
             return mMovies.size();
     }
 
+    public MovieData getMovie(int position) { return mMovies.get(position); }
+
     public void showMovies(List<MovieData> movies) {
 
             this.mMovies = movies;

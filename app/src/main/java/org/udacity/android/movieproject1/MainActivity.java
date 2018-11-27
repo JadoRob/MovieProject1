@@ -37,10 +37,15 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
     private MovieViewModel mMovieViewModel;
     MovieListAdapter adapter;
     public static final String EXTRA_SELECTION = "Selected Movie";
+    public static final String EXTRA_ID = "Movie ID";
     private static final String TAG = MainActivity.class.getSimpleName();
+    private MovieData currentMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        String sortOrder = null;
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -51,21 +56,27 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
         recyclerView.setAdapter(adapter);
         adapter.setOnItemClickListener(MainActivity.this);
 
-
-
         mMovieViewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
-        mMovieViewModel.getAllMovies().observe(this, new Observer<List<MovieData>>() {
-            @Override
-            public void onChanged(@Nullable final List<MovieData> movieList) {
-                adapter.showMovies(movieList);
-            }
-        });
+        sortOrder = mMovieViewModel.getMovieSortOrder();
+
+            mMovieViewModel.getAllMovies().observe(this, new Observer<List<MovieData>>() {
+                @Override
+                public void onChanged(@Nullable final List<MovieData> movieList) {
+                    if (movieList != null) { adapter.showMovies(movieList); }
+                    Log.i(TAG, "Onchanged triggered!");
+                }
+            });
+
+
     }
 
     @Override
     public void onItemClick(int position) {
         Intent detailsIntent = new Intent(this, DetailsActivity.class);
+        currentMovie = adapter.getMovie(position);
+
         detailsIntent.putExtra(EXTRA_SELECTION, position);
+        detailsIntent.putExtra(EXTRA_ID, currentMovie.movieID);
         startActivity(detailsIntent);
     }
 
@@ -108,8 +119,7 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
             case R.id.favorites:
                 sortOrder = "favorites";
                 mMovieViewModel.setMovieSortOrder(sortOrder);
-                //movieData = mDb.movieDao().getFavorites(); //UI should not have access to DB
-                //movieArrayAdapter.notifyDataSetChanged(); //replacing with RecycleView
+                mMovieViewModel.updateFavorites();
                 break;
         }
         return true;
