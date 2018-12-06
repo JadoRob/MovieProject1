@@ -4,4 +4,7 @@
     <string name="sort_popularity">Sort by Popularity</string>
     <string name="sort_rating">Sort by Rating</string>
     <string name="mark_as_favorite">Mark Favorite</string>
+    <string name="movie_pic">Movie Picture Thumbnail</string>
+    <string name="sort_by_favorites">Sort by Favorites</string>
+    <string name="clear_favorite_list">Clear Favorite List</string>
 </resources>

@@ -4,13 +4,16 @@ package org.udacity.android.movieproject1;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-@Entity (tableName = "movies") class MovieData {
+@Entity (tableName = "movies") class MovieData implements Serializable {
 
+
+    int position;
     @PrimaryKey
     int movieID;
     @ColumnInfo (name = "movie_title") String movieTitle;
@@ -18,21 +21,20 @@ import java.util.List;
     String synopsis;
     int userRating;
     String releaseDate;
-    Boolean favorite = false;
-    @Ignore final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p";
-    @Ignore final String IMAGE_SIZE = "/w500";
+    public Boolean favorite = false;
 
-     public MovieData(String movieTitle, String movieImage, String synopsis, int userRating,
-                      int movieID, String releaseDate) {
-         this.movieTitle = movieTitle;
-         this.movieImage = BASE_IMAGE_URL + IMAGE_SIZE + movieImage;
-         this.synopsis = synopsis;
-         this.userRating = userRating;
-         this.movieID = movieID;
-         this.releaseDate = releaseDate;
-     }
+    public MovieData(String movieTitle, String movieImage, String synopsis, int userRating,
+                     int movieID, String releaseDate, int position) {
+        this.movieTitle = movieTitle;
+        this.movieImage = movieImage;
+        this.synopsis = synopsis;
+        this.userRating = userRating;
+        this.movieID = movieID;
+        this.releaseDate = releaseDate;
+        this.position = position;
+    }
 
-     void setFavorite(boolean favorite) {
-         this.favorite = true;
-     }
+    void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
 }

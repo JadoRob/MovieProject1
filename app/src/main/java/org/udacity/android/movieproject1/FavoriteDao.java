@@ -1,27 +1,31 @@
 package org.udacity.android.movieproject1;
 
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
-import android.arch.persistence.room.Update;
 
 import java.util.List;
 
 @Dao
-public interface MovieDao {
+public interface FavoriteDao {
 
     @Query("SELECT * FROM movies ORDER BY movie_title")
-    List<MovieData> loadMovies();
+    LiveData<List<MovieData>> getAllMovies();
+
+    @Query("SELECT * FROM movies WHERE position = :movieID")
+    LiveData<MovieData> getMovie(int movieID);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMovie(MovieData movieData);
+    void saveMovie(MovieData movieData);
 
     @Delete
     void deleteMovie(MovieData movieData);
 
-    @Query("SELECT * FROM movies WHERE movieID = :id")
-    LiveData<MovieData> loadMovieById(int id);
+    @Query("DELETE FROM movies")
+    void nukeTable();
+
 }
