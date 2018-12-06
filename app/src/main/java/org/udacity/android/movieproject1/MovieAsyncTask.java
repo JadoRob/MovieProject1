@@ -11,10 +11,12 @@ public class MovieAsyncTask extends AsyncTask<String, Void, String> {
     private OnTaskCompleted taskCompleted;
     private String query;
     private int movieID;
+    String apiKey;
 
     MovieAsyncTask(OnTaskCompleted activityContext, String query) {
         this.query = query;
         this.taskCompleted = activityContext;
+
     }
 
     MovieAsyncTask(OnTaskCompleted activityContext, String query, int movieID) {

@@ -14,13 +14,13 @@ import java.util.List;
 public class MovieRepository implements OnTaskCompleted {
 
     private static MovieRepository instance;
-    private String query;
-    private MovieDao mMovieDao;
+    private static final Object LOCK = new Object();
+    protected String query;
     private FavoriteDao mFavoriteDao;
     private MutableLiveData<List<MovieData>> mMovieList;
-    private List<MovieData> mFavoriteList;
-    public LiveData<MovieData> movie;
-    private static final Object LOCK = new Object();
+    private MutableLiveData<List<MovieData>> mRatingList;
+    private LiveData<List<MovieData>> mFavoriteList;
+
 
     private Context mContext;
     private static final String TAG = MovieRepository.class.getSimpleName();
@@ -28,13 +28,17 @@ public class MovieRepository implements OnTaskCompleted {
     MovieRepository(Application application) {
 
         mContext = application;
-        MovieDatabase db = MovieDatabase.getDatabase(application);
         FavoriteDatabase fdb = FavoriteDatabase.getDatabase(application);
-        mMovieDao = db.movieDao();
         mFavoriteDao = fdb.favoriteDao();
         mMovieList = new MutableLiveData<>();
+        mRatingList = new MutableLiveData<>();
+        mFavoriteList = mFavoriteDao.getAllMovies();
         query = MoviePreferences.getMovieSortOrder(mContext);
-        new MovieAsyncTask(this, query).execute();
+        //avoids performing a network query if user selects sort by favorite
+        if (!query.equals("favorite")) {
+            new MovieAsyncTask(this, query).execute();
+        }
+
     }
 
     public static MovieRepository getInstance(Application application)
@@ -49,25 +53,24 @@ public class MovieRepository implements OnTaskCompleted {
         return(instance);
     }
 
-    //this method returns all the movies saved in MovieDatabase
-    LiveData<List<MovieData>> getAllMovies() {
-        return mMovieList;
+    //Calls network for data and returns the appropriate LiveData list depending on sort order
+    // selected by the user
+    public LiveData<List<MovieData>> sort(String sortOrder) {
+        switch (sortOrder) {
+            case "popular":
+                new MovieAsyncTask(this, "popular").execute();
+                return mMovieList;
+            case "rating":
+                new MovieAsyncTask(this, "rating").execute();
+                return mRatingList;
+            case "favorites":
+                return mFavoriteList;
+        }
+        return null;
     }
 
-    LiveData<MovieData> getMovie(int position) {
-        //movie =  mMovieDao.getMovie(position);
-        return movie;
-    }
-
-    void loadFavorites() {
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mFavoriteList = mFavoriteDao.getAllMovies();
-            }
-        });
-        thread.start();
+    public LiveData<List<MovieData>> getFavorites() {
+        return mFavoriteList;
     }
 
     public void deleteAll() {
@@ -81,95 +84,44 @@ public class MovieRepository implements OnTaskCompleted {
         Log.i(TAG, "Nuked!");
     }
 
-    public void updateMovies() {
-        query = MoviePreferences.getMovieSortOrder(mContext);
-        new MovieAsyncTask(this, query).execute();
-    }
-
-    void updateFavorites() {
-        if (mFavoriteList == null) {
-            Toast.makeText(mContext, "No favorite movies saved.", Toast
-                    .LENGTH_SHORT).show();
-            return;
-        }
-        mMovieList.setValue(mFavoriteList);
-    }
-
-    public void toggleFavorite(final MovieData movie, final int toggle) {
-        if (toggle == 1) {
-            movie.favorite = true;
-            saveFavorite(movie);
-            return;
-        }
-        deleteFavorite(movie);
-    }
-
-    //method for saving mMovie to the favorites database
-    public void saveMovie(final MovieData movie) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mMovieDao.saveMovie(movie);
-            }
-        });
-        thread.start();
-    }
-
-    private void saveFavorite(final MovieData movie) {
+    public void saveFavorite(final MovieData movie) {
+        final String saved = "Movie saved as favorite.";
+        final int duration = Toast.LENGTH_SHORT;
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 mFavoriteDao.saveMovie(movie);
-                Log.i(TAG, movie.movieTitle + " saved as favorite!");
+
             }
         });
         thread.start();
+        Toast.makeText(mContext, saved, duration).show();
     }
 
-    private void deleteFavorite(final MovieData movie) {
+    public void deleteFavorite(final MovieData movie) {
+        final String deleted = "Movie Deleted from favorites.";
+        final int duration = Toast.LENGTH_SHORT;
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 mFavoriteDao.deleteMovie(movie);
+
             }
         });
         thread.start();
+        Toast.makeText(mContext, deleted, duration).show();
     }
 
     //This interface is used to process the jsonString returned by MovieAsyncTask
     @Override
     public void onTaskCompleted(String s) {
-        if (s == null) {
+        if (s == null && (!MoviePreferences.getMovieSortOrder(mContext).equals("favorites"))) {
             Toast.makeText(mContext, "Internet data not available", Toast
                     .LENGTH_SHORT).show();
         } else {
             parseMovies(s);
         }
     }
-
-//    private static class popularMoviesAsyncTask extends AsyncTask<String, Void, String> {
-//        @Override
-//        protected String doInBackground(String... params) {
-//            return NetworkUtil.sendQueryURL(params[0]);
-//        }
-//        @Override
-//        protected void onPostExecute(String jsonString) {
-//            parseMovies(jsonString);
-//        }
-//    }
-//
-//    private static class ratedMoviesAsyncTask extends AsyncTask<String, Void, String> {
-//        @Override
-//        protected String doInBackground(String... params) {
-//            return NetworkUtil.sendQueryURL(params[0]);
-//        }
-//
-//        @Override
-//        protected void onPostExecute(String jsonString) {
-//            parseMovies(jsonString);
-//        }
-//    }
-
 
     //Parses the jsonString
      private void parseMovies(String jsonString) {
@@ -185,7 +137,6 @@ public class MovieRepository implements OnTaskCompleted {
         String nullMessage = "Unable to parse, JSON String is Null";
         String methodName = "From parseMovieDetails method: ";
         int position;
-        Log.d(TAG, jsonString);
 
         List<MovieData> list = new ArrayList<>();
 
@@ -206,28 +157,24 @@ public class MovieRepository implements OnTaskCompleted {
                     position = i;
                     currentMovie = new MovieData(movieTitle, posterPath, synopsis,
                             userRating, movieID, releaseDate, position);
-                    //currentMovie.setFavorite(favorite);
-                    currentMovie.favorite = checkFavorite(currentMovie);
+                    //currentMovie.favorite = checkFavorite(currentMovie.movieID);
                     list.add(currentMovie);
                         //Log.d(TAG, "Movie Name: " + currentMovie.movieTitle);
                 }
 
                 Log.i(TAG, "Network Data retrieved!, Populating cache.");
-                mMovieList.setValue(list);
+
+                if (MoviePreferences.getMovieSortOrder(mContext).equals("popular")) {
+                    mMovieList.setValue(list);
+                } else if (MoviePreferences.getMovieSortOrder(mContext).equals("rating")) {
+                    mRatingList.setValue(list);
+                }
+
 
                 } catch (Exception e) {
                 e.printStackTrace();
             }
         } else { Log.d(TAG, methodName + nullMessage); }
-    }
-
-    private boolean checkFavorite(MovieData movie) {
-        for (int i = 0; i < mFavoriteList.size(); i++) {
-            if (mFavoriteList.get(i).movieID == movie.movieID) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

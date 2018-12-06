@@ -14,7 +14,7 @@ import java.util.List;
 public interface FavoriteDao {
 
     @Query("SELECT * FROM movies ORDER BY movie_title")
-    List<MovieData> getAllMovies();
+    LiveData<List<MovieData>> getAllMovies();
 
     @Query("SELECT * FROM movies WHERE position = :movieID")
     LiveData<MovieData> getMovie(int movieID);

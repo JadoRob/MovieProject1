@@ -5,9 +5,8 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 import android.util.Log;
-import org.udacity.android.movieproject1.MovieDao;
 
-@Database(entities = {MovieData.class}, version = 1, exportSchema = false)
+@Database(entities = {MovieData.class}, version = 2, exportSchema = false)
 public abstract class FavoriteDatabase extends RoomDatabase {
 
     public abstract FavoriteDao favoriteDao();

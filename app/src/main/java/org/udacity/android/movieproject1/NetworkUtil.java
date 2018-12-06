@@ -60,8 +60,8 @@ public class NetworkUtil {
 
         try {
 
-            // FOR TESTING PURPOSES, REMOVE PRIOR TO PUBLISHING!
-            String apiKey = "API KEY GOES HERE!";
+            // api key stored in values/keys.xml
+            String apiKey = MainActivity.apiKey;
 
             Uri buildURI = Uri.parse(queryURL).buildUpon()
                     .appendQueryParameter(API_KEY, apiKey)

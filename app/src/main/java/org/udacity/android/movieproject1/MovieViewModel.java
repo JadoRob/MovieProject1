@@ -4,87 +4,88 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
-
+import android.util.Log;
+import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class MovieViewModel extends AndroidViewModel implements OnTaskCompleted {
 
     private static final String TAG = MovieViewModel.class.getSimpleName();
-    private LiveData<List<MovieData>> movieList;
-    private LiveData<MovieData> movie;
-    private MutableLiveData<List<MovieTrailers>> movieTrailersList;
-    private MutableLiveData<List<UserReviews>> userReviewsList;
+    private LiveData<List<MovieData>> mMovieList;
+    private LiveData<List<MovieData>> mFavoriteList;
+    private MutableLiveData<List<MovieTrailers>> mMovieTrailersList;
+    private MutableLiveData<List<UserReviews>> mUserReviewsList;
     private MovieRepository mMovieRepository;
-
-
+    private MutableLiveData<String> mSortOrder;
 
     public MovieViewModel(@NonNull Application application) {
         super(application);
         mMovieRepository = MovieRepository.getInstance(application);
-        mMovieRepository.loadFavorites();
-        movieList = mMovieRepository.getAllMovies();
-        movieTrailersList = new MutableLiveData<>();
-        userReviewsList = new MutableLiveData<>();
+        mMovieTrailersList = new MutableLiveData<>();
+        mUserReviewsList = new MutableLiveData<>();
+        mSortOrder = new MutableLiveData<>();
+        mFavoriteList = mMovieRepository.getFavorites();
+
+        //gets movie list from repository and updates the movie list live data whenever user
+        // changes sort order
+        mMovieList = Transformations.switchMap(mSortOrder, (newSortOrder) -> {
+            return mMovieRepository.sort(newSortOrder);
+        });
+
+        mSortOrder.setValue(MoviePreferences.getMovieSortOrder(getApplication()));
+
     }
 
-    public LiveData<List<MovieData>> getAllMovies() { return movieList; }
-
-    public void saveMovie(MovieData movie) { mMovieRepository.saveMovie(movie);}
-
-    public void toggleFavorite(MovieData movie, int toggle) {
-        mMovieRepository.toggleFavorite(movie, toggle);
+    public LiveData<List<MovieData>> getAllMovies() {
+        return mMovieList;
     }
 
-//    public void saveFavorite(int position) {
-//        mMovieRepository.
-//    }
-    public void initializeFavorites() {
+    public LiveData<List<MovieData>> getFavoriteList() {
+        return mFavoriteList;
+    }
 
+    public void saveFavorite(MovieData movie) {
+        mMovieRepository.saveFavorite(movie);
+    }
+
+    public void deleteFavorite(MovieData movie) {
+        mMovieRepository.deleteFavorite(movie);
     }
 
     public void deleteAll() { mMovieRepository.deleteAll(); }
 
-    public void updateMovies() {
-        mMovieRepository.updateMovies();
-    }
 
-    public void updateFavorites() {
-        mMovieRepository.updateFavorites();
-    }
-
-    public LiveData<MovieData> getMovie(int position) {
-        movie = mMovieRepository.getMovie(position);
-        return movie;
+    public void changeSortOrder(String sortOrder) {
+        MoviePreferences.setMovieSortOrder(getApplication(), sortOrder);
+        mSortOrder.setValue(sortOrder);
     }
 
     public LiveData<List<MovieTrailers>> getTrailers() {
-        return movieTrailersList;
+        return mMovieTrailersList;
     }
 
     public LiveData<List<UserReviews>> getReviews() {
-        return userReviewsList;
+        return mUserReviewsList;
     }
 
-    public void setMovieSortOrder(String sortOrder) {
-        MoviePreferences.setMovieSortOrder(getApplication(), sortOrder);
+    //takes the selected movie ID and confirms if it is a favorite, then returns true/false
+    public boolean check(int movieID) {
+        boolean isFavorite = false;
+        for (int i = 0; i < mFavoriteList.getValue().size(); i++) {
+            if (movieID == mFavoriteList.getValue().get(i).movieID) {
+                isFavorite = true;
+            }
+        }
+        Log.i(TAG, "is favorite?: " + isFavorite);
+        return isFavorite;
     }
 
-    public String getMovieSortOrder() {
-        return MoviePreferences.getMovieSortOrder(getApplication());
-    }
-
-    public void checkFavorite() {
-
-    }
-
-
-
-
+    //interface used to process info after calling MovieAsyncTask
     @Override
     public void onTaskCompleted(String s) {
         parseTrailerData(s);
@@ -117,7 +118,7 @@ public class MovieViewModel extends AndroidViewModel implements OnTaskCompleted 
                     MovieTrailers movieTrailers = new MovieTrailers(name, key);
                     list.add(movieTrailers);
                 }
-                movieTrailersList.setValue(list);
+                mMovieTrailersList.setValue(list);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -145,9 +146,8 @@ public class MovieViewModel extends AndroidViewModel implements OnTaskCompleted 
 
                     UserReviews userReviews = new UserReviews(author, content);
                     list.add(userReviews);
-                    //Log.i(TAG, "Author is: " + review.getString("author"));
                 }
-                userReviewsList.setValue(list);
+                mUserReviewsList.setValue(list);
 
             } catch (Exception e) {
                 e.printStackTrace();

@@ -6,13 +6,15 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity (tableName = "movies") class MovieData {
+@Entity (tableName = "movies") class MovieData implements Serializable {
 
-    @PrimaryKey
+
     int position;
+    @PrimaryKey
     int movieID;
     @ColumnInfo (name = "movie_title") String movieTitle;
     String movieImage;
